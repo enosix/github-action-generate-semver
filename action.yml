@@ -1,0 +1,37 @@
+name: 'Generate Semantic Version'
+description: 'Determine the next semantic version and optionally tag it.'
+inputs:
+  bump:
+    description: 'The type of semantic version increment to make (one of major, minor, patch, or prerelease)'
+    required: true
+  GITHUB_TOKEN:
+    description: 'Token to use to push to the repo. Pass in using `secrets.GITHUB_TOKEN`.'
+    required: true
+  dry_run:
+    description: 'If true, only calculate the new version and exit successfully.'
+    required: false
+    default: false
+  sha:
+    description: 'Commit SHA to use to create tag. Pass in if you modify the current HEAD.'
+    required: false
+  prefix:
+    description: 'Version prefix used to create tag. Usually empty or "v" or "=".'
+    required: false
+    default: "v"
+  prerelease_version:
+    description: 'Version to append for prerelease versions'
+    required: false
+    default: ""
+outputs:
+  version:
+    description: 'The new semantic version that was calculated.'
+  version_optimistic:
+    description: 'The major and minor components of the semantic version that was calculated.'
+  version_tag:
+    description: 'The version string used to create the tag.'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+branding:
+  icon: 'tag'
+  color: 'gray-dark'
