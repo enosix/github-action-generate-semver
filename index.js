@@ -1,12 +1,12 @@
 const core = require('@actions/core');
-const { GitHub, context } = require('@actions/github');
+const { getOctokit, context } = require('@actions/github');
 const semver = require('semver')
 
 async function mostRecentTag() {
   const token = core.getInput('GITHUB_TOKEN', { required: true })
-  const octokit = new GitHub(token)
+  const octokit = getOctokit(token)
 
-  const { data: refs } = await octokit.git.listRefs({
+  const { data: refs } = await octokit.git.listMatchingRefs({
     ...context.repo,
     namespace: 'tags/'
   })
@@ -21,7 +21,7 @@ async function mostRecentTag() {
 
 async function createTag(version) {
   const token = core.getInput('GITHUB_TOKEN', { required: true })
-  const octokit = new GitHub(token)
+  const octokit = getOctokit(token)
   const sha = core.getInput('sha') || context.sha
   const ref = `refs/tags/${version}`
   await octokit.git.createRef({
