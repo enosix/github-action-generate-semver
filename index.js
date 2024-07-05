@@ -5,18 +5,25 @@ const semver = require('semver')
 async function mostRecentTag() {
   const token = core.getInput('GITHUB_TOKEN', { required: true })
   const octokit = getOctokit(token)
+  const regex = /^\d+\.\d+$/;
 
   const { data: refs } = await octokit.git.listMatchingRefs({
     ...context.repo,
     namespace: 'tags/'
   })
 
+  const release = (context.ref.split('/').pop().replace('-','.')) || ''
+
   const versions = refs
     .map(ref => semver.parse(ref.ref.replace(/^refs\/tags\//g, ''), { loose: true }))
     .filter(version => version !== null)
     .sort(semver.rcompare)
 
-  return versions[0] || semver.parse('0.0.0')
+  if (regex.test(release)) {
+    return versions.find(v => v.startsWith(release)) || release + ".0"
+  } else {
+    return versions[0] || semver.parse('0.0.0')
+  }
 }
 
 async function createTag(version) {
