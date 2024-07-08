@@ -6,7 +6,7 @@ inputs:
     required: true
   GITHUB_TOKEN:
     description: 'Token to use to push to the repo. Pass in using `secrets.GITHUB_TOKEN`.'
-    required: true
+    required: false
   dry_run:
     description: 'If true, only calculate the new version and exit successfully.'
     required: false

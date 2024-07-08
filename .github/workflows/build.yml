@@ -1,14 +1,29 @@
+name: Build and Tag
 on:
+  pull_request:
+    paths-ignore:
+      - dist/*
   workflow_dispatch:
     inputs:
       bump:
-        description: 'The type of semantic version increment to make (one of major, minor, patch, or prerelease)'
+        description: 'The type of semantic version increment to make'
         required: true
         default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+          - none
       dry_run:
         description: 'If true, only calculate the new version and exit successfully.'
         required: false
         default: false
+
+env:
+  bump: ${{ github.event_name == 'pull_request' && 'none' || github.event.inputs.bump }}
+  prerelease_version: ${{ github.event_name == 'pull_request' && format('pr{0}', github.event.number) || '' }}
+  dry_run: ${{ github.event_name == 'pull_request' && 'true' || github.event.inputs.dry_run }}
 
 jobs:
   build:
@@ -17,6 +32,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
       - name: Build
         run: |
           npm install
@@ -24,12 +43,21 @@ jobs:
           npm run build
       - name: Commit and Push
         run: |
+          
           git config --global user.email ${{ github.actor }}@users.noreply.github.com
           git config --global user.name "github-actions[bot]"
+          git config --global --add safe.directory /__w/github-action-generate-semver/github-action-generate-semver
+          
+          if [ -z "$(git status --porcelain)" ]; then
+            exit 0
+          fi
+          
           git add -A
           git commit -m "Build Release"
           git push
-      - uses: ./action.yml
+      - uses: ./
         with:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
           bump: ${{ github.event.inputs.bump }}
+          prerelease_version: ${{ github.event.inputs.prerelease_version }}
           dry_run: ${{ github.event.inputs.dry_run }}
