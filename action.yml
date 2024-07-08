@@ -30,7 +30,7 @@ outputs:
   version_tag:
     description: 'The version string used to create the tag.'
 runs:
-  using: 'node12'
+  using: 'node20'
   main: 'dist/index.js'
 branding:
   icon: 'tag'
