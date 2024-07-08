@@ -2,56 +2,60 @@ const core = require('@actions/core');
 const { getOctokit, context } = require('@actions/github');
 const semver = require('semver')
 const zero = semver.parse('0.0.0', { loose: true })
-const isCI = process.env.CI === "true"
 
 async function mostRecentTag() {
     const refs = await getTags()
     const release = getReleaseBranch()
 
-
     const versions = refs
-        .map(ref => semver.parse(ref.ref.replace(/^refs\/tags\//g, ''), { loose: true }))
+        .map(ref => {
+            return semver.coerce(ref.ref.replace(/^refs\/tags\//g, ''));
+        })
         .filter(version => version !== null)
         .sort(semver.rcompare)
 
-    if (/^\d+\.\d+$/.test(release)) {
-        return versions.find(v => v.version.startsWith(release)) || release + ".0"
-
+    if (release) {
+        return versions.find(v => v.major === release.major) || release
     } else {
         return versions[0] || zero
     }
 }
 
 function getReleaseBranch(){
-    const branch = isCI ? context.ref : process.env['DUMMY_BRANCH']
+    const branch = process.env.TEST === "true" ? process.env['DUMMY_BRANCH'] : context.ref
 
-    return (branch.split('/').pop().replace('-','.')) || ''
+    const release = (branch.split('/').pop().replace('-','.'))
+
+    if (/^v?\d+\.\d+(\.\d+)?$/.test(release)) {
+        return semver.coerce(release)
+    }
+
+    return null
 }
 
 async function getTags() {
-    if (!isCI) {
-        console.log(`Skipping tag retrieval as not in CI`)
+    if (process.env.TEST === "true") {
         return process.env['DUMMY_REFS'].split(',').map(x => { return { ref: `refs/tags/${x}` } })
     }
     const token = core.getInput('GITHUB_TOKEN', { required: true })
     const octokit = getOctokit(token)
-    const { data: refs } = await octokit.git.listMatchingRefs({
+
+    const { data: refs } = await octokit.rest.git.listMatchingRefs({
         ...context.repo,
-        refPrefix: 'refs/tags/'
+        ref: 'tags'
     })
     return refs
 }
 
 async function createTag(version) {
-    if (!isCI) {
-        console.log(`Skipping tag creation as not in CI`)
+    if (process.env.TEST === "true") {
         return
     }
     const token = core.getInput('GITHUB_TOKEN', { required: true })
     const octokit = getOctokit(token)
     const sha = core.getInput('sha') || context.sha
     const ref = `refs/tags/${version}`
-    await octokit.git.createRef({
+    await octokit.rest.git.createRef({
         ...context.repo,
         ref,
         sha
@@ -64,16 +68,18 @@ async function run() {
         const latestTag = await mostRecentTag()
         console.log(`Using latest tag "${latestTag.toString()}" and prerelease "${prereleaseVersion}"`)
         let version = zero
-        if (bump) {
-            version = semver.inc(latestTag, bump)
-        }else{
-            version = semver.parse(latestTag, { loose: true })
+        if (latestTag){
+            version = latestTag
+            console.log(`Using latest tag "${version}"`)
+        }
+
+        if (bump && bump !== 'none') {
+            version = version.inc(bump)
         }
 
         if (prereleaseVersion){
-            version = `${semver.major(version)}.${semver.minor(version)}.${semver.patch(version)}-${prereleaseVersion}`
+            version = version.inc('pre', prereleaseVersion, false)
         }
-
 
         const prefix = core.getInput('prefix', {required: false}) || "v"
         let version_tag = prefix + version.toString()
