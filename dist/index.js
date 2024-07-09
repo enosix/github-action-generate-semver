@@ -13,15 +13,15 @@ async function mostRecentTag() {
     const refs = await getTags()
     const release = getReleaseBranch()
 
-
     const versions = refs
-        .map(ref => semver.parse(ref.ref.replace(/^refs\/tags\//g, ''), { loose: true }))
+        .map(ref => {
+            return semver.coerce(ref.ref.replace(/^refs\/tags\//g, ''));
+        })
         .filter(version => version !== null)
         .sort(semver.rcompare)
 
-    if (/^\d+\.\d+$/.test(release)) {
-        return versions.find(v => v.version.startsWith(release)) || release + ".0"
-
+    if (release) {
+        return versions.find(v => v.major === release.major) || release
     } else {
         return versions[0] || zero
     }
@@ -30,7 +30,13 @@ async function mostRecentTag() {
 function getReleaseBranch(){
     const branch = process.env.TEST === "true" ? process.env['DUMMY_BRANCH'] : context.ref
 
-    return (branch.split('/').pop().replace('-','.')) || ''
+    const release = (branch.split('/').pop().replace('-','.'))
+
+    if (/^v?\d+\.\d+(\.\d+)?$/.test(release)) {
+        return semver.coerce(release)
+    }
+
+    return null
 }
 
 async function getTags() {
@@ -39,9 +45,10 @@ async function getTags() {
     }
     const token = core.getInput('GITHUB_TOKEN', { required: true })
     const octokit = getOctokit(token)
+
     const { data: refs } = await octokit.rest.git.listMatchingRefs({
         ...context.repo,
-        refPrefix: 'refs/tags/'
+        ref: 'tags'
     })
     return refs
 }
@@ -67,16 +74,18 @@ async function run() {
         const latestTag = await mostRecentTag()
         console.log(`Using latest tag "${latestTag.toString()}" and prerelease "${prereleaseVersion}"`)
         let version = zero
+        if (latestTag){
+            version = latestTag
+            console.log(`Using latest tag "${version}"`)
+        }
+
         if (bump && bump !== 'none') {
-            version = semver.inc(latestTag, bump)
-        }else{
-            version = semver.parse(latestTag, { loose: true })
+            version = version.inc(bump)
         }
 
         if (prereleaseVersion){
-            version = `${semver.major(version)}.${semver.minor(version)}.${semver.patch(version)}-${prereleaseVersion}`
+            version = version.inc('pre', prereleaseVersion, false)
         }
-
 
         const prefix = core.getInput('prefix', {required: false}) || "v"
         let version_tag = prefix + version.toString()
