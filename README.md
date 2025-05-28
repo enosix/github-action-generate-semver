@@ -1,7 +1,3 @@
-Here’s a concise README draft for your GitHub Action, including usage and all available parameters:
-
----
-
 # GitHub Action: Generate Semantic Version
 
 **GitHub Action to automatically create SemVer tags for a repo
