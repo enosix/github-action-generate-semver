@@ -64,16 +64,16 @@ async function createTag(version) {
 
 async function detectBump() {
     let bump = core.getInput('bump', { required: false })
+    const sha = core.getInput('sha') || context.sha
 
-    if (core.getInput('detect_bump') === 'true') {
-        const sha = core.getInput('sha') || context.sha
+    if (core.getInput('detect_bump') === 'true' && sha) {
         const token = core.getInput('github_token', { required: true })
         const octokit = getOctokit(token)
         const { data } = await octokit.rest.repos.getCommit({
             ...context.repo,
             commit_sha: sha
         });
-        console.log(data)
+        console.log(data.commit)
         const msg = (data.commit && data.commit.message || '').toLowerCase()
         if (msg.includes('[major]')) {
             bump = 'major'
