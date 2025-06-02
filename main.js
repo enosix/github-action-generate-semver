@@ -69,11 +69,11 @@ async function detectBump() {
         const sha = core.getInput('sha') || context.sha
         const token = core.getInput('github_token', { required: true })
         const octokit = getOctokit(token)
-        const { data: { commit } } = await octokit.rest.repos.getCommit({
+        const { data } = await octokit.rest.repos.getCommit({
             ...context.repo,
             commit_sha: sha
         });
-        const msg = (commit.message || '').toLowerCase()
+        const msg = (data.commit && data.commit.message || '').toLowerCase()
         if (msg.includes('[major]')) {
             bump = 'major'
         } else if (msg.includes('[minor]')) {
