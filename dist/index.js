@@ -67,28 +67,34 @@ async function createTag(version) {
         sha
     })
 }
+
+async function detectBump() {
+    let bump = core.getInput('bump', { required: false })
+
+    if (core.getInput('detect_bump') === 'true') {
+        const sha = core.getInput('sha') || context.sha
+        const token = core.getInput('github_token', { required: true })
+        const octokit = getOctokit(token)
+        const { data: commit } = await octokit.rest.repos.getCommit({
+            ...context.repo,
+            commit_sha: sha
+        });
+        const msg = (commit.message || '').toLowerCase()
+        if (msg.includes('[major]')) {
+            bump = 'major'
+        } else if (msg.includes('[minor]')) {
+            bump = 'minor'
+        } else if (msg.includes('[patch]')) {
+            bump = 'patch'
+        }
+    }
+
+    return bump || 'none'
+}
+
 async function run() {
     try {
-        let bump = core.getInput('bump', { required: false })
-
-        if (core.getInput('detect_bump') === 'true') {
-            const sha = core.getInput('sha') || context.sha
-            const token = core.getInput('github_token', { required: true })
-            const octokit = getOctokit(token)
-            const { data: commit } = await octokit.rest.repos.getCommit({
-                ...context.repo,
-                commit_sha: sha
-            });
-            const msg = (commit.message || '').toLowerCase()
-            if (msg.includes('[major]')) {
-                bump = 'major'
-            } else if (msg.includes('[minor]')) {
-                bump = 'minor'
-            } else if (msg.includes('[patch]')) {
-                bump = 'patch'
-            }
-        }
-
+        const bump = await detectBump()
         const prereleaseVersion = core.getInput('prerelease_version', { required: false })
         const latestTag = await mostRecentTag()
         console.log(`Using latest tag "${latestTag.toString()}" and prerelease "${prereleaseVersion}"`)
