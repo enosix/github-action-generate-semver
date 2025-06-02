@@ -43,7 +43,7 @@ async function getTags() {
     if (process.env.TEST === "true") {
         return process.env['DUMMY_REFS'].split(',').map(x => { return { ref: `refs/tags/${x}` } })
     }
-    const token = core.getInput('GITHUB_TOKEN', { required: true })
+    const token = core.getInput('github_token', { required: true })
     const octokit = getOctokit(token)
 
     const { data: refs } = await octokit.rest.git.listMatchingRefs({
@@ -57,7 +57,7 @@ async function createTag(version) {
     if (process.env.TEST === "true") {
         return
     }
-    const token = core.getInput('GITHUB_TOKEN', { required: true })
+    const token = core.getInput('github_token', { required: true })
     const octokit = getOctokit(token)
     const sha = core.getInput('sha') || context.sha
     const ref = `refs/tags/${version}`
@@ -73,18 +73,18 @@ async function run() {
 
         if (core.getInput('detect_bump') === 'true') {
             const sha = core.getInput('sha') || context.sha
-            const token = core.getInput('GITHUB_TOKEN', { required: true })
+            const token = core.getInput('github_token', { required: true })
             const octokit = getOctokit(token)
             const { data: commit } = await octokit.rest.repos.getCommit({
                 ...context.repo,
                 commit_sha: sha
             });
             const msg = commit.message.toLowerCase()
-            if (msg.contains('[major]')) {
+            if (msg.includes('[major]')) {
                 bump = 'major'
-            } else if (msg.contains('[minor]')) {
+            } else if (msg.includes('[minor]')) {
                 bump = 'minor'
-            } else if (msg.contains('[patch]')) {
+            } else if (msg.includes('[patch]')) {
                 bump = 'patch'
             }
         }

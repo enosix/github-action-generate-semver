@@ -4,9 +4,9 @@ inputs:
   bump:
     description: 'The type of semantic version increment to make (one of major, minor, patch, or prerelease)'
     required: false
-  GITHUB_TOKEN:
+  github_token:
     description: 'Token to use to push to the repo. Pass in using `secrets.GITHUB_TOKEN`.'
-    required: false
+    required: true
   dry_run:
     description: 'If true, only calculate the new version and exit successfully.'
     required: false
