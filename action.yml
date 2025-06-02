@@ -3,25 +3,29 @@ description: 'Determine the next semantic version and optionally tag it.'
 inputs:
   bump:
     description: 'The type of semantic version increment to make (one of major, minor, patch, or prerelease)'
-    required: true
+    required: false
   GITHUB_TOKEN:
     description: 'Token to use to push to the repo. Pass in using `secrets.GITHUB_TOKEN`.'
     required: false
   dry_run:
     description: 'If true, only calculate the new version and exit successfully.'
     required: false
-    default: false
+    default: 'false'
   sha:
     description: 'Commit SHA to use to create tag. Pass in if you modify the current HEAD.'
     required: false
   prefix:
     description: 'Version prefix used to create tag. Usually empty or "v" or "=".'
     required: false
-    default: "v"
+    default: 'v'
   prerelease_version:
     description: 'Version to append for prerelease versions'
     required: false
-    default: ""
+    default: ''
+  detect_bump:
+    description: 'If true, detect the type of bump to make based on the commit messages.'
+    required: false
+    default: 'true'
 outputs:
   version:
     description: 'The new semantic version that was calculated.'

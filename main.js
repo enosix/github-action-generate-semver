@@ -63,7 +63,26 @@ async function createTag(version) {
 }
 async function run() {
     try {
-        const bump = core.getInput('bump', { required: false })
+        let bump = core.getInput('bump', { required: false })
+
+        if (core.getInput('detect_bump') === 'true') {
+            const sha = core.getInput('sha') || context.sha
+            const token = core.getInput('GITHUB_TOKEN', { required: true })
+            const octokit = getOctokit(token)
+            const { data: commit } = await octokit.rest.repos.getCommit({
+                ...context.repo,
+                commit_sha: sha
+            });
+            const msg = commit.message.toLowerCase()
+            if (msg.contains('[major]')) {
+                bump = 'major'
+            } else if (msg.contains('[minor]')) {
+                bump = 'minor'
+            } else if (msg.contains('[patch]')) {
+                bump = 'patch'
+            }
+        }
+
         const prereleaseVersion = core.getInput('prerelease_version', { required: false })
         const latestTag = await mostRecentTag()
         console.log(`Using latest tag "${latestTag.toString()}" and prerelease "${prereleaseVersion}"`)
