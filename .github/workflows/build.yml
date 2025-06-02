@@ -62,7 +62,7 @@ jobs:
 
       - uses: ./
         with:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
           bump: ${{ env.bump }}
           prerelease_version: ${{ env.prerelease_version }}
           dry_run: ${{ env.dry_run || steps.commit.outputs.changed}}

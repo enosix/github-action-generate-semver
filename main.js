@@ -37,7 +37,7 @@ async function getTags() {
     if (process.env.TEST === "true") {
         return process.env['DUMMY_REFS'].split(',').map(x => { return { ref: `refs/tags/${x}` } })
     }
-    const token = core.getInput('GITHUB_TOKEN', { required: true })
+    const token = core.getInput('github_token', { required: true })
     const octokit = getOctokit(token)
 
     const { data: refs } = await octokit.rest.git.listMatchingRefs({
@@ -51,7 +51,7 @@ async function createTag(version) {
     if (process.env.TEST === "true") {
         return
     }
-    const token = core.getInput('GITHUB_TOKEN', { required: true })
+    const token = core.getInput('github_token', { required: true })
     const octokit = getOctokit(token)
     const sha = core.getInput('sha') || context.sha
     const ref = `refs/tags/${version}`
@@ -61,9 +61,34 @@ async function createTag(version) {
         sha
     })
 }
+
+async function detectBump() {
+    let bump = core.getInput('bump', { required: false })
+    const sha = core.getInput('sha') || context.sha
+
+    if (core.getInput('detect_bump') === 'true' && sha) {
+        const token = core.getInput('github_token', { required: true })
+        const octokit = getOctokit(token)
+        const { data } = await octokit.rest.repos.getCommit({
+            ...context.repo,
+            ref: sha
+        });
+        const msg = (data.commit && data.commit.message || '').toLowerCase()
+        if (msg.includes('[major]')) {
+            bump = 'major'
+        } else if (msg.includes('[minor]')) {
+            bump = 'minor'
+        } else if (msg.includes('[patch]')) {
+            bump = 'patch'
+        }
+    }
+
+    return bump || 'none'
+}
+
 async function run() {
     try {
-        const bump = core.getInput('bump', { required: false })
+        const bump = await detectBump()
         const prereleaseVersion = core.getInput('prerelease_version', { required: false })
         const latestTag = await mostRecentTag()
         console.log(`Using latest tag "${latestTag.toString()}" and prerelease "${prereleaseVersion}"`)
