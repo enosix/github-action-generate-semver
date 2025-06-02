@@ -71,9 +71,9 @@ async function detectBump() {
         const octokit = getOctokit(token)
         const { data } = await octokit.rest.repos.getCommit({
             ...context.repo,
-            commit_sha: sha
+            ref: sha
         });
-        console.log('data', data)
+        console.log('sha', sha, 'data', data)
         const msg = (data.commit && data.commit.message || '').toLowerCase()
         if (msg.includes('[major]')) {
             bump = 'major'
