@@ -75,7 +75,7 @@ async function detectBump() {
         const sha = core.getInput('sha') || context.sha
         const token = core.getInput('github_token', { required: true })
         const octokit = getOctokit(token)
-        const { data: commit } = await octokit.rest.repos.getCommit({
+        const { data: { commit } } = await octokit.rest.repos.getCommit({
             ...context.repo,
             commit_sha: sha
         });
