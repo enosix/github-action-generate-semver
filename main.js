@@ -73,6 +73,7 @@ async function detectBump() {
             ...context.repo,
             commit_sha: sha
         });
+        console.log(data)
         const msg = (data.commit && data.commit.message || '').toLowerCase()
         if (msg.includes('[major]')) {
             bump = 'major'
