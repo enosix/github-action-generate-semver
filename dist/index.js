@@ -79,7 +79,7 @@ async function run() {
                 ...context.repo,
                 commit_sha: sha
             });
-            const msg = commit.message.toLowerCase()
+            const msg = (commit.message || '').toLowerCase()
             if (msg.includes('[major]')) {
                 bump = 'major'
             } else if (msg.includes('[minor]')) {
