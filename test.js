@@ -279,6 +279,114 @@ describe('main', () => {
         });
     });
 
+    describe('version bumping', () => {
+        it('should increment major version when bump is "major"', async () => {
+            process.env.TEST = 'true';
+            process.env.DUMMY_REFS = 'v1.2.3';
+            process.env.DUMMY_BRANCH = 'main';
+            process.env.INPUT_BUMP = 'major';
+            process.env.INPUT_DRY_RUN = 'true';
+            delete process.env.INPUT_PRERELEASE_VERSION;
+            
+            const result = await run();
+            
+            assert.equal(result.toString(), '2.0.0');
+        });
+
+        it('should increment minor version when bump is "minor"', async () => {
+            process.env.TEST = 'true';
+            process.env.DUMMY_REFS = 'v1.2.3';
+            process.env.DUMMY_BRANCH = 'main';
+            process.env.INPUT_BUMP = 'minor';
+            process.env.INPUT_DRY_RUN = 'true';
+            delete process.env.INPUT_PRERELEASE_VERSION;
+            
+            const result = await run();
+            
+            assert.equal(result.toString(), '1.3.0');
+        });
+
+        it('should increment patch version when bump is "patch"', async () => {
+            process.env.TEST = 'true';
+            process.env.DUMMY_REFS = 'v1.2.3';
+            process.env.DUMMY_BRANCH = 'main';
+            process.env.INPUT_BUMP = 'patch';
+            process.env.INPUT_DRY_RUN = 'true';
+            delete process.env.INPUT_PRERELEASE_VERSION;
+            
+            const result = await run();
+            
+            assert.equal(result.toString(), '1.2.4');
+        });
+    });
+
+    describe('prerelease version bumping', () => {
+        it('should create prerelease version without bump', async () => {
+            process.env.TEST = 'true';
+            process.env.DUMMY_REFS = 'v1.2.3';
+            process.env.DUMMY_BRANCH = 'main';
+            process.env.INPUT_PRERELEASE_VERSION = 'alpha';
+            process.env.INPUT_DRY_RUN = 'true';
+            delete process.env.INPUT_BUMP;
+            
+            const result = await run();
+            
+            assert.equal(result.toString(), '1.2.3-alpha');
+        });
+
+        it('should create prerelease version with major bump', async () => {
+            process.env.TEST = 'true';
+            process.env.DUMMY_REFS = 'v1.2.3';
+            process.env.DUMMY_BRANCH = 'main';
+            process.env.INPUT_BUMP = 'major';
+            process.env.INPUT_PRERELEASE_VERSION = 'beta';
+            process.env.INPUT_DRY_RUN = 'true';
+            
+            const result = await run();
+            
+            assert.equal(result.toString(), '2.0.0-beta');
+        });
+
+        it('should create prerelease version with minor bump', async () => {
+            process.env.TEST = 'true';
+            process.env.DUMMY_REFS = 'v1.2.3';
+            process.env.DUMMY_BRANCH = 'main';
+            process.env.INPUT_BUMP = 'minor';
+            process.env.INPUT_PRERELEASE_VERSION = 'rc';
+            process.env.INPUT_DRY_RUN = 'true';
+            
+            const result = await run();
+            
+            assert.equal(result.toString(), '1.3.0-rc');
+        });
+
+        it('should create prerelease version with patch bump', async () => {
+            process.env.TEST = 'true';
+            process.env.DUMMY_REFS = 'v1.2.3';
+            process.env.DUMMY_BRANCH = 'main';
+            process.env.INPUT_BUMP = 'patch';
+            process.env.INPUT_PRERELEASE_VERSION = 'alpha';
+            process.env.INPUT_DRY_RUN = 'true';
+            
+            const result = await run();
+            
+            assert.equal(result.toString(), '1.2.4-alpha');
+        });
+
+        it('should handle custom prerelease identifiers', async () => {
+            process.env.TEST = 'true';
+            process.env.DUMMY_REFS = 'v1.2.3';
+            process.env.DUMMY_BRANCH = 'main';
+            process.env.INPUT_PRERELEASE_VERSION = 'dev';
+            process.env.INPUT_DRY_RUN = 'true';
+            delete process.env.INPUT_BUMP;
+            
+            const result = await run();
+            
+            assert.equal(result.toString(), '1.2.3-dev');
+        });
+    });
+
     describe('integration tests', () => {
         it('should handle complete workflow for new feature branch', async () => {
             process.env.TEST = 'true';
