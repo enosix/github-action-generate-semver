@@ -10,8 +10,16 @@ const semver = __nccwpck_require__(2088)
 const zero = semver.parse('0.0.0', { loose: true })
 
 async function mostRecentTag() {
-    const refs = await getTags()
+    const prefix = core.getInput('prefix', {required: false}) || "v"
+    const filterByPrefix = core.getInput('filter_by_prefix', {required: false}) || ""
+
     const release = getReleaseBranch()
+    let refs = await getTags()
+    
+    if (filterByPrefix) {
+        refs = refs
+            .filter(tag => tag.ref.startsWith(`refs/tags/${prefix}`))
+    }
 
     const versions = refs
         .map(ref => {
@@ -133,7 +141,7 @@ async function run() {
     }
 }
 
-module.exports = { run, mostRecentTag, getReleaseBranch, getTags, createTag }
+module.exports = { run, mostRecentTag, getReleaseBranch, getTags, createTag, detectBump }
 
 
 /***/ }),
