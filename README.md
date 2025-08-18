@@ -14,6 +14,7 @@ Add the following step to your workflow:
     github_token: ${{ secrets.GITHUB_TOKEN }}  # optional
     dry_run: false        # optional, default: false
     sha:                  # optional, commit SHA to tag (default: current HEAD)
+    filter_by_prefix:     # optional, default: false
     prefix: v             # optional, default: "v"
     prerelease_version:   # optional, version to append for prerelease
 ```
@@ -44,6 +45,7 @@ This detection overrides any value specified in the `bump` input.
 | `dry_run`            | If `true`, only calculates the new version and exits successfully                                                 | No       | false   |
 | `sha`                | Commit SHA to use for tag creation (if different from current HEAD)                                               | No       |         |
 | `prefix`             | Prefix for the version tag (e.g., empty, `v`, or `=`)                                                             | No       | v       |
+| `filter_by_prefix`   | If set, only consider tags that start with this prefix when calculating the new version                           | No       | false   |
 | `prerelease_version` | String to append for prerelease versions                                                                          | No       |         |
 | `detect_bump`        | If `true`, automatically detect the type of bump based on commit messages. This will override the specified bump. | No       | true    |
 

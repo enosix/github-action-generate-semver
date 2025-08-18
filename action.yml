@@ -18,6 +18,10 @@ inputs:
     description: 'Version prefix used to create tag. Usually empty or "v" or "=".'
     required: false
     default: 'v'
+  filterByPrefix:
+    description: 'If set, only consider existing tags with this prefix when calculating the new version.'
+    required: false
+    default: ''
   prerelease_version:
     description: 'Version to append for prerelease versions'
     required: false
