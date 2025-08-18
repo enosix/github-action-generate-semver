@@ -36,15 +36,19 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
           token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
-      - name: Build
-        run: |
-          npm install
-          npm run test
-          npm run build
+      
+      - name: npm install
+        run: npm install
+      
+      - name: npm run build
+        run: npm run build
+      
+      - name: npm run test
+        run: npm run test
+      
       - name: Commit and Push
         id: commit
         run: |
-          
           git config --global user.email ${{ github.actor }}@users.noreply.github.com
           git config --global user.name "github-actions[bot]"
           git config --global --add safe.directory /__w/github-action-generate-semver/github-action-generate-semver
