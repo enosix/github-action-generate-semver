@@ -1,7 +1,7 @@
-const core = require('@actions/core');
-const { getOctokit, context } = require('@actions/github');
-const semver = require('semver')
-const zero = semver.parse('0.0.0', { loose: true })
+import * as core from '@actions/core';
+import { getOctokit, context } from '@actions/github';
+import semver from 'semver';
+const zero = semver.parse('0.0.0', { loose: true });
 
 async function mostRecentTag() {
     const prefix = core.getInput('prefix', {required: false}) || "v"
@@ -135,4 +135,4 @@ async function run() {
     }
 }
 
-module.exports = { run, mostRecentTag, getReleaseBranch, getTags, createTag, detectBump }
+export { run, mostRecentTag, getReleaseBranch, getTags, createTag, detectBump };
