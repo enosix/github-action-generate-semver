@@ -1,7 +1,7 @@
-const assert = require('node:assert');
-const { describe, it, beforeEach } = require('node:test');
-const dotenv = require('dotenv');
-const { run, mostRecentTag, getReleaseBranch, getTags, createTag, detectBump } = require('./main.js');
+import assert from 'node:assert';
+import { describe, it, beforeEach } from 'node:test';
+import dotenv from 'dotenv';
+import { run, mostRecentTag, getReleaseBranch, getTags, createTag, detectBump } from './main.js';
 
 describe('main', () => {
     beforeEach(() => {
