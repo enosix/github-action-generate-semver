@@ -34,22 +34,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: node:26
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@12cd2235efa0937479335606d7c3ac9f6c0973b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref }}
           fetch-depth: 0
           token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+          persist-credentials: true
 
-      - name: npm install
-        run: npm install
+      - name: Setup pnpm and Node.js
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+
+      - name: pnpm install
+        run: pnpm install
       
-      - name: npm run build
-        run: npm run build
+      - name: pnpm run build
+        run: pnpm run build
       
-      - name: npm run test
-        run: npm run test
+      - name: pnpm run test
+        run: pnpm run test
       
       - name: Commit and Push
         id: commit
@@ -75,4 +82,5 @@ jobs:
           bump: ${{ env.bump }}
           prerelease_version: ${{ env.prerelease_version }}
           dry_run: ${{ env.dry_run }}
-          detect_bump: true
+          create_release: true
+          detect_bump: ${{ github.event_name == 'push' }}

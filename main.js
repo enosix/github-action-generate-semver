@@ -127,6 +127,9 @@ async function run() {
 
         if (core.getInput('dry_run') !== 'true') {
             await createTag(version_tag)
+            if (core.getInput('create_release') === 'true') {
+                await createRelease(version_tag, version.prerelease.length > 0)
+            }
         }
         return version
     }
@@ -135,4 +138,20 @@ async function run() {
     }
 }
 
-export { run, mostRecentTag, getReleaseBranch, getTags, createTag, detectBump };
+async function createRelease(version, prerelease) {
+    if (process.env.TEST === "true") {
+        return
+    }
+    const token = core.getInput('github_token', { required: true })
+    const octokit = getOctokit(token)
+    const releaseName = core.getInput('release_name', { required: false }) || version
+    await octokit.rest.repos.createRelease({
+        ...context.repo,
+        tag_name: version,
+        name: releaseName,
+        generate_release_notes: true,
+        prerelease: !!prerelease
+    })
+}
+
+export { run, mostRecentTag, getReleaseBranch, getTags, createTag, createRelease, detectBump };

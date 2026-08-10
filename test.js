@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { describe, it, beforeEach } from 'node:test';
 import dotenv from 'dotenv';
-import { run, mostRecentTag, getReleaseBranch, getTags, createTag, detectBump } from './main.js';
+import { run, mostRecentTag, getReleaseBranch, getTags, createTag, createRelease, detectBump } from './main.js';
 
 describe('main', () => {
     beforeEach(() => {
@@ -16,6 +16,8 @@ describe('main', () => {
         delete process.env.INPUT_DETECT_BUMP;
         delete process.env.INPUT_SHA;
         delete process.env.INPUT_GITHUB_TOKEN;
+        delete process.env.INPUT_CREATE_RELEASE;
+        delete process.env.INPUT_RELEASE_NAME;
     });
 
     describe('run function', () => {
@@ -214,6 +216,21 @@ describe('main', () => {
                 await createTag('1.0.0');
                 await createTag('v2.0.0');
                 await createTag('app-v1.5.0');
+            });
+        });
+    });
+
+    describe('createRelease function', () => {
+        it('should return without error in test mode', async () => {
+            await assert.doesNotReject(async () => {
+                await createRelease('v1.0.0', false);
+            });
+        });
+
+        it('should handle prerelease flag', async () => {
+            await assert.doesNotReject(async () => {
+                await createRelease('v2.0.0-alpha', true);
+                await createRelease('v2.0.0', false);
             });
         });
     });
