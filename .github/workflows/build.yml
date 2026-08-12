@@ -36,6 +36,7 @@ jobs:
     container: node:26
     permissions:
       contents: write
+      checks: write
       pull-requests: write
     steps:
       - name: Checkout
@@ -51,13 +52,25 @@ jobs:
 
       - name: pnpm install
         run: pnpm install
-      
+
       - name: pnpm run build
         run: pnpm run build
       
       - name: pnpm run test
-        run: pnpm run test
-      
+        run: pnpm exec node --test --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=test-results.xml test.js
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
+        if: ${{ !cancelled() }}
+        with:
+          name: Node.js Tests
+          path: test-results.xml
+          reporter: java-junit
+
+      - name: Remove Test Report
+        if: always()
+        run: rm -f test-results.xml
+
       - name: Commit and Push
         id: commit
         run: |
@@ -76,11 +89,12 @@ jobs:
           git commit -m "Build Release"
           git push
 
-      - uses: ./
+      - name: Generate Semantic Version
+        uses:  ./
         with:
-          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           bump: ${{ env.bump }}
           prerelease_version: ${{ env.prerelease_version }}
           dry_run: ${{ env.dry_run }}
-          create_release: true
+          create_release: ${{ github.event_name == 'push' }}
           detect_bump: ${{ github.event_name == 'push' }}
