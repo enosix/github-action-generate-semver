@@ -33,7 +33,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: node:26
+    container: node:24
     permissions:
       contents: write
       checks: write
@@ -70,6 +70,7 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           report_paths: 'test-results.xml'
+          detailed_summary: true
 
       - name: Remove Test Report
         if: always()
