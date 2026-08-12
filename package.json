@@ -1,5 +1,6 @@
 {
   "name": "generate-semver",
+  "author": "Enosix",
   "version": "0.0.0",
   "description": "Create a release",
   "type": "module",
@@ -16,8 +17,14 @@
     "actions",
     "node"
   ],
-  "author": "Enosix",
-  "license": "MIT",
+  "packageManager": "pnpm@11.21.0",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^24.0.0",
+      "onFail": "download"
+    }
+  },
   "dependencies": {
     "@actions/core": "^3.0.1",
     "@actions/github": "^9.1.1",

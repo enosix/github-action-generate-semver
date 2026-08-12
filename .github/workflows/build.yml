@@ -33,31 +33,56 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: node:26
+    container: node:24
+    permissions:
+      contents: write
+      checks: write
+      pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@12cd2235efa0937479335606d7c3ac9f6c0973b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref }}
           fetch-depth: 0
           token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+          persist-credentials: true
 
-      - name: npm install
-        run: npm install
-      
-      - name: npm run build
-        run: npm run build
-      
-      - name: npm run test
-        run: npm run test
-      
-      - name: Commit and Push
-        id: commit
+      - name: Configure Git
         run: |
           git config --global user.email ${GITHUB_ACTOR}@users.noreply.github.com
           git config --global user.name "github-actions[bot]"
-          git config --global --add safe.directory /__w/github-action-generate-semver/github-action-generate-semver
-          
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Setup pnpm and Node.js
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+
+      - name: pnpm install
+        run: pnpm install
+
+      - name: pnpm run build
+        run: pnpm run build
+      
+      - name: pnpm run test
+        run: pnpm exec node --test --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=test-results.xml test.js
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@d9f48fc87bc235f7e214acf696ca5abc0a986f16 # v6.4.2
+        if: ${{ !cancelled() }}
+        with:
+          report_paths: 'test-results.xml'
+          detailed_summary: true
+          include_passed: true
+          group_suite: true
+          resolve_ignore_classname: true
+          check_title_template: '{{TEST_NAME}}'
+
+      - name: Remove Test Report
+        if: always()
+        run: rm -f test-results.xml
+
+      - name: Commit and Push
+        id: commit
+        run: |          
           if [ -z "$(git status --porcelain)" ]; then
             echo "changed=0">> $GITHUB_OUTPUT
             echo "No changes"
@@ -69,10 +94,12 @@ jobs:
           git commit -m "Build Release"
           git push
 
-      - uses: ./
+      - name: Generate Semantic Version
+        uses:  ./
         with:
-          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           bump: ${{ env.bump }}
           prerelease_version: ${{ env.prerelease_version }}
           dry_run: ${{ env.dry_run }}
-          detect_bump: true
+          create_release: ${{ github.event_name == 'push' }}
+          detect_bump: ${{ github.event_name == 'push' }}

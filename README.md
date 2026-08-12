@@ -17,6 +17,8 @@ Add the following step to your workflow:
     filter_by_prefix:     # optional, default: false
     prefix: v             # optional, default: "v"
     prerelease_version:   # optional, version to append for prerelease
+    create_release: false # optional, default: false
+    release_name:         # optional, name of the release (default: version tag)
 ```
 
 ## Commit Message Detection
@@ -48,6 +50,8 @@ This detection overrides any value specified in the `bump` input.
 | `filter_by_prefix`   | If set, only consider tags that start with this prefix when calculating the new version                           | No       | false   |
 | `prerelease_version` | String to append for prerelease versions                                                                          | No       |         |
 | `detect_bump`        | If `true`, automatically detect the type of bump based on commit messages. This will override the specified bump. | No       | true    |
+| `create_release`     | If `true`, also create a GitHub release for the new tag                                                           | No       | false   |
+| `release_name`       | Name of the GitHub release. Defaults to the version tag.                                                          | No       |         |
 
 ## Outputs
 

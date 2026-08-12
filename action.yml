@@ -30,6 +30,14 @@ inputs:
     description: 'If true, detect the type of bump to make based on the commit messages.'
     required: false
     default: 'true'
+  create_release:
+    description: 'If true, create a GitHub release when creating the tag.'
+    required: false
+    default: 'false'
+  release_name:
+    description: 'Name of the GitHub release. Defaults to the version tag.'
+    required: false
+    default: ''
 outputs:
   version:
     description: 'The new semantic version that was calculated.'
