@@ -72,6 +72,9 @@ jobs:
           report_paths: 'test-results.xml'
           detailed_summary: true
           include_passed: true
+          group_suite: true
+          resolve_ignore_classname: true
+          check_title_template: '{{TEST_NAME}}'
 
       - name: Remove Test Report
         if: always()
