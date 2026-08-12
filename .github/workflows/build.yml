@@ -47,6 +47,12 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
           persist-credentials: true
 
+      - name: Configure Git
+        run: |
+          git config --global user.email ${GITHUB_ACTOR}@users.noreply.github.com
+          git config --global user.name "github-actions[bot]"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Setup pnpm and Node.js
         uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
 
@@ -73,11 +79,7 @@ jobs:
 
       - name: Commit and Push
         id: commit
-        run: |
-          git config --global user.email ${GITHUB_ACTOR}@users.noreply.github.com
-          git config --global user.name "github-actions[bot]"
-          git config --global --add safe.directory /__w/github-action-generate-semver/github-action-generate-semver
-          
+        run: |          
           if [ -z "$(git status --porcelain)" ]; then
             echo "changed=0">> $GITHUB_OUTPUT
             echo "No changes"
