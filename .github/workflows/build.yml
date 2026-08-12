@@ -71,6 +71,7 @@ jobs:
         with:
           report_paths: 'test-results.xml'
           detailed_summary: true
+          include_passed: true
 
       - name: Remove Test Report
         if: always()
